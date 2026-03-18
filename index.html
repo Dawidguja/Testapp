@@ -53,19 +53,21 @@
     .streak-badge .flame { font-size: 20px; }
     .streak-count { color: var(--accent); font-size: 20px; font-weight: 800; }
 
-    /* ── Google Calendar button ── */
-    .gcal-btn {
+    /* ── Icon buttons ── */
+    .icon-btn {
       display: flex; align-items: center; gap: 8px;
       padding: 8px 14px; border-radius: 100px;
       border: 1px solid var(--border); background: var(--surface);
       color: var(--text); font-size: 13px; font-weight: 600;
       cursor: pointer; transition: border-color 0.2s, background 0.2s;
     }
-    .gcal-btn:hover { border-color: var(--google); }
+    .icon-btn:hover { border-color: var(--accent); }
+    .gcal-btn { }
     .gcal-btn.connected { border-color: var(--google); color: var(--google); }
     .gcal-btn svg { flex-shrink: 0; }
+    .history-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* ── Setup modal ── */
+    /* ── Modal ── */
     .modal-overlay {
       position: fixed; inset: 0;
       background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
@@ -76,6 +78,7 @@
     .modal {
       background: var(--surface); border: 1px solid var(--border);
       border-radius: 16px; padding: 28px; width: 100%; max-width: 480px;
+      max-height: 90vh; overflow-y: auto;
     }
     .modal h2 { font-size: 18px; font-weight: 700; margin-bottom: 6px; }
     .modal .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
@@ -94,6 +97,19 @@
     }
     .modal-steps strong { color: var(--text); }
     .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+    /* ── Recurring checkbox ── */
+    .recurring-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border-radius: 8px;
+      padding: 12px 14px; margin-bottom: 16px; cursor: pointer;
+    }
+    .recurring-row input[type="checkbox"] {
+      width: 18px; height: 18px; margin: 0; padding: 0;
+      accent-color: var(--accent); cursor: pointer; flex-shrink: 0;
+    }
+    .recurring-row span { font-size: 13px; color: var(--text); line-height: 1.4; }
+    .recurring-row small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
 
     /* ── Progress bar ── */
     .progress-wrap { max-width: 600px; margin: 0 auto 24px; }
@@ -130,9 +146,7 @@
       background: color-mix(in srgb, var(--success) 8%, var(--surface));
       border-color: color-mix(in srgb, var(--success) 40%, var(--border));
     }
-    .block-card.gcal-event {
-      border-left: 3px solid var(--google);
-    }
+    .block-card.gcal-event { border-left: 3px solid var(--google); }
 
     .check {
       width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%;
@@ -155,6 +169,11 @@
       color: var(--google); background: color-mix(in srgb, var(--google) 15%, transparent);
       padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px;
     }
+    .recurring-tag {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+      color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent);
+      padding: 2px 6px; border-radius: 4px; display: inline-block; margin-top: 4px; margin-left: 4px;
+    }
 
     .delete-btn {
       background: none; border: none; color: var(--muted);
@@ -168,10 +187,22 @@
     /* ── Calendar toolbar ── */
     .cal-toolbar {
       max-width: 600px; margin: 20px auto 0;
-      display: none; gap: 10px;
+      display: none; gap: 10px; flex-direction: column;
     }
     .cal-toolbar.show { display: flex; }
-    .cal-toolbar .btn { flex: 1; text-align: center; }
+    .cal-toolbar-row { display: flex; gap: 10px; }
+    .cal-toolbar-row .btn { flex: 1; text-align: center; }
+
+    /* ── New day banner ── */
+    .new-day-banner {
+      max-width: 600px; margin: 0 auto 16px;
+      background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+      border-radius: var(--radius); padding: 12px 16px;
+      font-size: 13px; color: var(--accent);
+      display: none; align-items: center; gap: 10px;
+    }
+    .new-day-banner.show { display: flex; }
 
     /* ── Empty state ── */
     .empty { text-align: center; color: var(--muted); padding: 48px 16px; font-size: 14px; }
@@ -236,6 +267,57 @@
     }
     .day-complete.show { display: block; }
 
+    /* ── History panel ── */
+    .history-panel {
+      max-width: 600px; margin: 28px auto 0;
+      display: none; flex-direction: column; gap: 10px;
+    }
+    .history-panel.show { display: flex; }
+    .history-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 4px;
+    }
+    .history-header h3 { font-size: 15px; font-weight: 700; }
+    .history-close {
+      background: none; border: none; color: var(--muted);
+      font-size: 20px; cursor: pointer; line-height: 1;
+    }
+    .history-day {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .history-day-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; cursor: pointer;
+    }
+    .history-day-header:hover { background: var(--surface2); }
+    .history-day-date { font-size: 13px; font-weight: 600; }
+    .history-day-meta { display: flex; align-items: center; gap: 10px; }
+    .history-pct {
+      font-size: 12px; font-weight: 700;
+      padding: 2px 8px; border-radius: 100px;
+    }
+    .history-pct.full { background: color-mix(in srgb, var(--success) 20%, transparent); color: var(--success); }
+    .history-pct.partial { background: color-mix(in srgb, var(--accent) 20%, transparent); color: var(--accent); }
+    .history-pct.none { background: var(--surface2); color: var(--muted); }
+    .history-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
+    .history-day.open .history-chevron { transform: rotate(90deg); }
+    .history-tasks {
+      display: none; padding: 0 16px 12px; border-top: 1px solid var(--border);
+    }
+    .history-day.open .history-tasks { display: block; }
+    .history-task {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
+    }
+    .history-task:last-child { border-bottom: none; }
+    .history-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .history-dot.done { background: var(--success); }
+    .history-dot.missed { background: var(--border); }
+    .history-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 32px; }
+
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -243,7 +325,7 @@
 </head>
 <body>
 
-<!-- Setup modal -->
+<!-- Google Calendar setup modal -->
 <div class="modal-overlay hidden" id="setupModal">
   <div class="modal">
     <h2>Connect Google Calendar</h2>
@@ -269,14 +351,40 @@
   </div>
 </div>
 
+<!-- Export options modal -->
+<div class="modal-overlay hidden" id="exportModal">
+  <div class="modal">
+    <h2>Export to Google Calendar</h2>
+    <p class="modal-sub">Choose how to add your routine blocks to Google Calendar.</p>
+    <label class="recurring-row" for="recurringCheck">
+      <input type="checkbox" id="recurringCheck" checked />
+      <span>
+        Repeat daily (recurring events)
+        <small>Add once — events repeat every day automatically. Best for a fixed daily routine.</small>
+      </span>
+    </label>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeExportModal()">Cancel</button>
+      <button class="btn btn-google" onclick="confirmExport()">
+        Export to Calendar
+      </button>
+    </div>
+  </div>
+</div>
+
 <header class="header">
   <div class="header-left">
     <h1>Daily Routine</h1>
     <div class="date" id="dateLabel"></div>
   </div>
   <div class="header-right">
-    <button class="gcal-btn" id="gcalBtn" onclick="handleGcalClick()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <!-- History button -->
+    <button class="icon-btn history-btn" onclick="toggleHistory()">
+      📅 History
+    </button>
+    <!-- Google Calendar button -->
+    <button class="icon-btn gcal-btn" id="gcalBtn" onclick="handleGcalClick()">
+      <svg width="16" height="16" viewBox="0 0 24 24">
         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
@@ -291,6 +399,11 @@
     </div>
   </div>
 </header>
+
+<!-- New day banner -->
+<div class="new-day-banner" id="newDayBanner">
+  🌅 <strong>New day!</strong>&nbsp; Your checkmarks have been reset — routine blocks are still saved.
+</div>
 
 <div class="progress-wrap">
   <div class="progress-info">
@@ -307,8 +420,10 @@
 
 <!-- Calendar toolbar (shown when connected) -->
 <div class="cal-toolbar" id="calToolbar">
-  <button class="btn btn-google" onclick="importFromCalendar()">⬇ Import today's events</button>
-  <button class="btn btn-ghost" onclick="exportToCalendar()">⬆ Export blocks to Calendar</button>
+  <div class="cal-toolbar-row">
+    <button class="btn btn-google" onclick="importFromCalendar()">⬇ Import today's events</button>
+    <button class="btn btn-ghost" onclick="openExportModal()">⬆ Export blocks to Calendar</button>
+  </div>
 </div>
 
 <div class="add-section">
@@ -335,6 +450,15 @@
   </div>
 </div>
 
+<!-- History panel -->
+<div class="history-panel" id="historyPanel">
+  <div class="history-header">
+    <h3>📅 History — Last 14 Days</h3>
+    <button class="history-close" onclick="toggleHistory()">✕</button>
+  </div>
+  <div id="historyList"></div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -342,10 +466,11 @@
   // ── Config ───────────────────────────────────────────────────
   const STORAGE_KEY   = 'dailyroutine_v1';
   const CLIENT_ID_KEY = 'dailyroutine_gcal_clientid';
+  const LAST_SEEN_KEY = 'dailyroutine_lastseen';
   const SCOPES        = 'https://www.googleapis.com/auth/calendar';
 
-  let tokenClient = null;
-  let accessToken = null;
+  let tokenClient  = null;
+  let accessToken  = null;
 
   // ── Storage ──────────────────────────────────────────────────
   function load() {
@@ -364,6 +489,12 @@
     });
   }
 
+  function formatDateShort(d) {
+    return new Date(d + 'T12:00:00').toLocaleDateString(undefined, {
+      weekday: 'short', month: 'short', day: 'numeric'
+    });
+  }
+
   function formatTime(t) {
     if (!t) return '';
     const [h, m] = t.split(':').map(Number);
@@ -374,6 +505,17 @@
   function toTimeStr(isoDateTime) {
     const d = new Date(isoDateTime);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  // ── New day detection ─────────────────────────────────────────
+  function checkNewDay() {
+    const lastSeen = localStorage.getItem(LAST_SEEN_KEY);
+    const todayKey = today();
+    if (lastSeen && lastSeen !== todayKey) {
+      document.getElementById('newDayBanner').classList.add('show');
+      setTimeout(() => document.getElementById('newDayBanner').classList.remove('show'), 6000);
+    }
+    localStorage.setItem(LAST_SEEN_KEY, todayKey);
   }
 
   // ── Streak ───────────────────────────────────────────────────
@@ -405,12 +547,12 @@
     document.getElementById('dateLabel').textContent = formatDate(todayKey);
     document.getElementById('streakCount').textContent = calcStreak(data);
 
-    const total = data.blocks.length;
+    const total     = data.blocks.length;
     const completed = done.filter(id => data.blocks.some(b => b.id === id)).length;
-    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+    const pct       = total === 0 ? 0 : Math.round((completed / total) * 100);
     document.getElementById('progressLabel').textContent = `${completed} of ${total} completed`;
-    document.getElementById('progressPct').textContent = `${pct}%`;
-    document.getElementById('progressFill').style.width = `${pct}%`;
+    document.getElementById('progressPct').textContent   = `${pct}%`;
+    document.getElementById('progressFill').style.width  = `${pct}%`;
     document.getElementById('dayComplete').classList.toggle('show', total > 0 && completed === total);
 
     const list = document.getElementById('blockList');
@@ -421,18 +563,19 @@
 
     const sorted = [...data.blocks].sort((a, b) => (a.startTime||'').localeCompare(b.startTime||''));
     list.innerHTML = sorted.map(block => {
-      const isDone = done.includes(block.id);
-      const timeStr = [block.startTime && formatTime(block.startTime), block.endTime && formatTime(block.endTime)]
+      const isDone   = done.includes(block.id);
+      const timeStr  = [block.startTime && formatTime(block.startTime), block.endTime && formatTime(block.endTime)]
         .filter(Boolean).join(' – ');
-      const gcalClass = block.fromGcal ? ' gcal-event' : '';
-      const gcalTag   = block.fromGcal ? `<span class="gcal-tag">Google Calendar</span>` : '';
+      const gcalClass    = block.fromGcal ? ' gcal-event' : '';
+      const gcalTag      = block.fromGcal    ? `<span class="gcal-tag">Google Calendar</span>` : '';
+      const recurringTag = block.recurring   ? `<span class="recurring-tag">🔁 Daily</span>`    : '';
       return `
         <div class="block-card${isDone ? ' done' : ''}${gcalClass}" onclick="toggleBlock('${block.id}')">
           <div class="check">${isDone ? '✓' : ''}</div>
           <div class="block-info">
             <div class="block-name">${escHtml(block.name)}</div>
             ${timeStr ? `<div class="block-time">${timeStr}</div>` : ''}
-            ${gcalTag}
+            <div>${gcalTag}${recurringTag}</div>
           </div>
           <button class="delete-btn" title="Delete" onclick="deleteBlock(event,'${block.id}')">✕</button>
         </div>`;
@@ -464,7 +607,7 @@
     if (!name) { document.getElementById('blockName').focus(); return; }
     const data = load();
     data.blocks.push({
-      id: crypto.randomUUID(),
+      id:        crypto.randomUUID(),
       name,
       startTime: document.getElementById('startTime').value,
       endTime:   document.getElementById('endTime').value,
@@ -501,19 +644,81 @@
     toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
   }
 
+  // ── History ──────────────────────────────────────────────────
+  let historyOpen = false;
+
+  function toggleHistory() {
+    historyOpen = !historyOpen;
+    const panel = document.getElementById('historyPanel');
+    panel.classList.toggle('show', historyOpen);
+    if (historyOpen) renderHistory();
+  }
+
+  function renderHistory() {
+    const data = load();
+    const list = document.getElementById('historyList');
+
+    // Build last 14 days (excluding today)
+    const days = [];
+    for (let i = 1; i <= 14; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      days.push(d.toISOString().slice(0, 10));
+    }
+
+    // Filter to days that have any completion data
+    const daysWithData = days.filter(d => (data.completions[d] || []).length > 0 || data.blocks.length > 0);
+
+    if (!daysWithData.length || !data.blocks.length) {
+      list.innerHTML = `<div class="history-empty">No history yet.<br>Complete your first routine to see it here!</div>`;
+      return;
+    }
+
+    list.innerHTML = daysWithData.map(dateKey => {
+      const done      = data.completions[dateKey] || [];
+      const total     = data.blocks.length;
+      const completed = done.filter(id => data.blocks.some(b => b.id === id)).length;
+      const pct       = total === 0 ? 0 : Math.round((completed / total) * 100);
+      const pctClass  = pct === 100 ? 'full' : pct > 0 ? 'partial' : 'none';
+      const pctLabel  = pct === 100 ? '✅ Complete' : `${pct}%`;
+
+      const tasks = data.blocks
+        .sort((a,b) => (a.startTime||'').localeCompare(b.startTime||''))
+        .map(b => {
+          const isDone = done.includes(b.id);
+          return `<div class="history-task">
+            <div class="history-dot ${isDone ? 'done' : 'missed'}"></div>
+            <span style="color:${isDone ? 'var(--text)' : 'var(--muted)'}">${escHtml(b.name)}</span>
+            ${b.startTime ? `<span style="color:var(--muted);font-size:11px;margin-left:auto">${formatTime(b.startTime)}</span>` : ''}
+          </div>`;
+        }).join('');
+
+      return `
+        <div class="history-day" id="hday-${dateKey}">
+          <div class="history-day-header" onclick="toggleHistoryDay('${dateKey}')">
+            <span class="history-day-date">${formatDateShort(dateKey)}</span>
+            <div class="history-day-meta">
+              <span class="history-pct ${pctClass}">${pctLabel}</span>
+              <span class="history-chevron">▶</span>
+            </div>
+          </div>
+          <div class="history-tasks">${tasks}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function toggleHistoryDay(dateKey) {
+    document.getElementById(`hday-${dateKey}`).classList.toggle('open');
+  }
+
   // ── Google Calendar: setup ────────────────────────────────────
   function handleGcalClick() {
     if (accessToken) {
-      // Already connected — toggle toolbar
       document.getElementById('calToolbar').classList.toggle('show');
     } else {
       const saved = localStorage.getItem(CLIENT_ID_KEY);
-      if (saved) {
-        initTokenClient(saved);
-        requestToken();
-      } else {
-        openSetupModal();
-      }
+      if (saved) { initTokenClient(saved); requestToken(); }
+      else        { openSetupModal(); }
     }
   }
 
@@ -560,30 +765,42 @@
     document.getElementById('gcalBtnText').textContent = yes ? 'Calendar Connected' : 'Connect Calendar';
   }
 
+  // ── Export modal ─────────────────────────────────────────────
+  function openExportModal() {
+    document.getElementById('exportModal').classList.remove('hidden');
+  }
+  function closeExportModal() {
+    document.getElementById('exportModal').classList.add('hidden');
+  }
+  function confirmExport() {
+    const recurring = document.getElementById('recurringCheck').checked;
+    closeExportModal();
+    exportToCalendar(recurring);
+  }
+
   // ── Import from Google Calendar ───────────────────────────────
   async function importFromCalendar() {
     if (!accessToken) { showToast('Connect Google Calendar first'); return; }
 
     const todayKey = today();
-    const timeMin = encodeURIComponent(todayKey + 'T00:00:00Z');
-    const timeMax = encodeURIComponent(todayKey + 'T23:59:59Z');
+    const timeMin  = encodeURIComponent(todayKey + 'T00:00:00Z');
+    const timeMax  = encodeURIComponent(todayKey + 'T23:59:59Z');
     const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
 
     showToast('⏳ Fetching events…');
     try {
-      const res = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
+      const res  = await fetch(url, { headers: { Authorization: 'Bearer ' + accessToken } });
       if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
+      const json   = await res.json();
       const events = json.items || [];
 
       const data = load();
       let added = 0;
       for (const ev of events) {
-        if (!ev.start?.dateTime) continue; // skip all-day
-        const name = ev.summary || 'Event';
+        if (!ev.start?.dateTime) continue;
+        const name      = ev.summary || 'Event';
         const startTime = toTimeStr(ev.start.dateTime);
         const endTime   = toTimeStr(ev.end.dateTime);
-        // Skip if already imported
         if (data.blocks.some(b => b.gcalId === ev.id)) continue;
         data.blocks.push({ id: crypto.randomUUID(), name, startTime, endTime, fromGcal: true, gcalId: ev.id });
         added++;
@@ -597,10 +814,10 @@
   }
 
   // ── Export to Google Calendar ─────────────────────────────────
-  async function exportToCalendar() {
+  async function exportToCalendar(recurring = false) {
     if (!accessToken) { showToast('Connect Google Calendar first'); return; }
 
-    const data = load();
+    const data     = load();
     const todayKey = today();
     const toExport = data.blocks.filter(b => !b.gcalId);
 
@@ -608,12 +825,20 @@
 
     showToast('⏳ Exporting…');
     let exported = 0;
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
     for (const block of toExport) {
       const body = {
         summary: block.name,
-        start: { dateTime: `${todayKey}T${block.startTime || '09:00'}:00`, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-        end:   { dateTime: `${todayKey}T${block.endTime   || '10:00'}:00`, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+        start: { dateTime: `${todayKey}T${block.startTime || '09:00'}:00`, timeZone: tz },
+        end:   { dateTime: `${todayKey}T${block.endTime   || '10:00'}:00`, timeZone: tz },
       };
+
+      // Add daily recurrence if selected
+      if (recurring) {
+        body.recurrence = ['RRULE:FREQ=DAILY'];
+      }
+
       try {
         const res = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
           method: 'POST',
@@ -621,15 +846,17 @@
           body: JSON.stringify(body),
         });
         if (!res.ok) throw new Error(await res.text());
-        const ev = await res.json();
-        block.gcalId = ev.id;
+        const ev     = await res.json();
+        block.gcalId    = ev.id;
+        block.recurring = recurring;
         exported++;
       } catch (err) {
         console.error('Export error for', block.name, err);
       }
     }
     save(data); render();
-    showToast(`✅ Exported ${exported} block${exported !== 1 ? 's' : ''} to Calendar`);
+    const label = recurring ? 'recurring daily' : 'one-time';
+    showToast(`✅ Exported ${exported} block${exported !== 1 ? 's' : ''} as ${label} events`);
   }
 
   // ── Utils ────────────────────────────────────────────────────
@@ -637,10 +864,11 @@
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // Auto-init if client ID already saved (re-auth on load)
+  // ── Init ─────────────────────────────────────────────────────
   window.addEventListener('load', () => {
     const saved = localStorage.getItem(CLIENT_ID_KEY);
     if (saved) initTokenClient(saved);
+    checkNewDay();
   });
 
   render();
