@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Routine</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f0f13;
+      --surface: #1a1a24;
+      --surface2: #22222f;
+      --border: #2e2e3e;
+      --accent: #7c6af7;
+      --accent2: #5e4fe0;
+      --success: #3ecf8e;
+      --danger: #f76a6a;
+      --text: #e8e8f0;
+      --muted: #888898;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px 16px 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      max-width: 600px;
+      margin: 0 auto 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-left h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+    }
+    .header-left .date {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .streak-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .streak-badge .flame { font-size: 20px; }
+    .streak-count { color: var(--accent); font-size: 20px; font-weight: 800; }
+
+    /* ── Progress bar ── */
+    .progress-wrap {
+      max-width: 600px;
+      margin: 0 auto 24px;
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .progress-bar {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--success));
+      border-radius: 100px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Block list ── */
+    .blocks {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .block-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      user-select: none;
+    }
+    .block-card:hover { border-color: var(--accent); }
+    .block-card.done {
+      background: color-mix(in srgb, var(--success) 8%, var(--surface));
+      border-color: color-mix(in srgb, var(--success) 40%, var(--border));
+    }
+
+    .check {
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      transition: all 0.2s;
+    }
+    .block-card.done .check {
+      background: var(--success);
+      border-color: var(--success);
+      color: #0f0f13;
+    }
+
+    .block-info { flex: 1 1 auto; min-width: 0; }
+    .block-name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      transition: color 0.2s;
+    }
+    .block-card.done .block-name { color: var(--muted); text-decoration: line-through; }
+    .block-time {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .delete-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      font-size: 16px;
+      line-height: 1;
+      opacity: 0;
+      transition: opacity 0.2s, color 0.2s;
+    }
+    .block-card:hover .delete-btn { opacity: 1; }
+    .delete-btn:hover { color: var(--danger); }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 48px 16px;
+      font-size: 14px;
+    }
+    .empty .emoji { font-size: 40px; margin-bottom: 12px; }
+
+    /* ── Add form ── */
+    .add-section {
+      max-width: 600px;
+      margin: 24px auto 0;
+    }
+    .add-toggle {
+      width: 100%;
+      padding: 13px;
+      border-radius: var(--radius);
+      border: 1px dashed var(--border);
+      background: none;
+      color: var(--muted);
+      font-size: 14px;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .add-toggle:hover { border-color: var(--accent); color: var(--accent); }
+
+    .add-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .add-form.open { display: flex; }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 5px; }
+
+    input[type="text"], input[type="time"] {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .time-group { flex: 1 1 120px; }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost { background: var(--surface2); color: var(--muted); }
+
+    /* ── Completed day banner ── */
+    .day-complete {
+      max-width: 600px;
+      margin: 20px auto 0;
+      background: color-mix(in srgb, var(--success) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--success) 35%, var(--border));
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--success);
+      display: none;
+    }
+    .day-complete.show { display: block; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <h1>Daily Routine</h1>
+    <div class="date" id="dateLabel"></div>
+  </div>
+  <div class="streak-badge">
+    <span class="flame">🔥</span>
+    <span class="streak-count" id="streakCount">0</span>
+    <span style="color:var(--muted);font-size:13px">day streak</span>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-info">
+    <span id="progressLabel">0 of 0 completed</span>
+    <span id="progressPct">0%</span>
+  </div>
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill" style="width:0%"></div>
+  </div>
+</div>
+
+<div class="blocks" id="blockList"></div>
+<div class="day-complete" id="dayComplete">✅ Routine complete! Great work today.</div>
+
+<div class="add-section">
+  <button class="add-toggle" id="addToggle" onclick="toggleForm()">+ Add time block</button>
+  <div class="add-form" id="addForm">
+    <div>
+      <label>Block name</label>
+      <input type="text" id="blockName" placeholder="e.g. Morning workout" />
+    </div>
+    <div class="form-row">
+      <div class="time-group">
+        <label>Start time</label>
+        <input type="time" id="startTime" value="07:00" />
+      </div>
+      <div class="time-group">
+        <label>End time</label>
+        <input type="time" id="endTime" value="08:00" />
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn btn-primary" onclick="addBlock()">Add block</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Storage helpers ──────────────────────────────────────────
+  const STORAGE_KEY = 'dailyroutine_v1';
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultData(); }
+    catch { return defaultData(); }
+  }
+
+  function save(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function defaultData() {
+    return { blocks: [], completions: {} };
+  }
+
+  // ── Date helpers ─────────────────────────────────────────────
+  function today() {
+    return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  }
+
+  function formatDate(d) {
+    return new Date(d + 'T12:00:00').toLocaleDateString(undefined, {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+
+  function formatTime(t) {
+    if (!t) return '';
+    const [h, m] = t.split(':').map(Number);
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour = h % 12 || 12;
+    return `${hour}:${String(m).padStart(2, '0')} ${ampm}`;
+  }
+
+  // ── Streak calculation ───────────────────────────────────────
+  function calcStreak(data) {
+    if (data.blocks.length === 0) return 0;
+    let streak = 0;
+    const d = new Date();
+    // If today not fully done yet, start counting from yesterday
+    const todayKey = today();
+    const todayDone = isDayComplete(data, todayKey);
+    if (!todayDone) d.setDate(d.getDate() - 1);
+
+    while (true) {
+      const key = d.toISOString().slice(0, 10);
+      if (isDayComplete(data, key)) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else break;
+    }
+    return streak;
+  }
+
+  function isDayComplete(data, dateKey) {
+    if (data.blocks.length === 0) return false;
+    const done = data.completions[dateKey] || [];
+    return data.blocks.every(b => done.includes(b.id));
+  }
+
+  // ── Render ───────────────────────────────────────────────────
+  function render() {
+    const data = load();
+    const todayKey = today();
+    const done = data.completions[todayKey] || [];
+
+    // Date label
+    document.getElementById('dateLabel').textContent = formatDate(todayKey);
+
+    // Streak
+    document.getElementById('streakCount').textContent = calcStreak(data);
+
+    // Progress
+    const total = data.blocks.length;
+    const completed = done.filter(id => data.blocks.some(b => b.id === id)).length;
+    const pct = total === 0 ? 0 : Math.round((completed / total) * 100);
+    document.getElementById('progressLabel').textContent = `${completed} of ${total} completed`;
+    document.getElementById('progressPct').textContent = `${pct}%`;
+    document.getElementById('progressFill').style.width = `${pct}%`;
+
+    // Day complete banner
+    const dayComplete = document.getElementById('dayComplete');
+    dayComplete.classList.toggle('show', total > 0 && completed === total);
+
+    // Block list
+    const list = document.getElementById('blockList');
+
+    if (data.blocks.length === 0) {
+      list.innerHTML = `<div class="empty"><div class="emoji">📋</div>No time blocks yet.<br>Add your first block below!</div>`;
+      return;
+    }
+
+    // Sort by start time
+    const sorted = [...data.blocks].sort((a, b) => a.startTime.localeCompare(b.startTime));
+
+    list.innerHTML = sorted.map(block => {
+      const isDone = done.includes(block.id);
+      const timeStr = [block.startTime && formatTime(block.startTime), block.endTime && formatTime(block.endTime)]
+        .filter(Boolean).join(' – ');
+      return `
+        <div class="block-card ${isDone ? 'done' : ''}" onclick="toggleBlock('${block.id}')">
+          <div class="check">${isDone ? '✓' : ''}</div>
+          <div class="block-info">
+            <div class="block-name">${escHtml(block.name)}</div>
+            ${timeStr ? `<div class="block-time">${timeStr}</div>` : ''}
+          </div>
+          <button class="delete-btn" title="Delete" onclick="deleteBlock(event, '${block.id}')">✕</button>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Actions ──────────────────────────────────────────────────
+  function toggleBlock(id) {
+    const data = load();
+    const todayKey = today();
+    if (!data.completions[todayKey]) data.completions[todayKey] = [];
+    const idx = data.completions[todayKey].indexOf(id);
+    if (idx === -1) data.completions[todayKey].push(id);
+    else data.completions[todayKey].splice(idx, 1);
+    save(data);
+    render();
+  }
+
+  function deleteBlock(e, id) {
+    e.stopPropagation();
+    const data = load();
+    data.blocks = data.blocks.filter(b => b.id !== id);
+    // Clean up completions
+    for (const key of Object.keys(data.completions)) {
+      data.completions[key] = data.completions[key].filter(cid => cid !== id);
+    }
+    save(data);
+    render();
+  }
+
+  function addBlock() {
+    const name = document.getElementById('blockName').value.trim();
+    if (!name) { document.getElementById('blockName').focus(); return; }
+    const startTime = document.getElementById('startTime').value;
+    const endTime = document.getElementById('endTime').value;
+
+    const data = load();
+    data.blocks.push({ id: crypto.randomUUID(), name, startTime, endTime });
+    save(data);
+    render();
+    closeForm();
+  }
+
+  // ── Form ─────────────────────────────────────────────────────
+  function toggleForm() {
+    const form = document.getElementById('addForm');
+    const toggle = document.getElementById('addToggle');
+    const isOpen = form.classList.contains('open');
+    if (isOpen) closeForm();
+    else {
+      form.classList.add('open');
+      toggle.style.display = 'none';
+      document.getElementById('blockName').focus();
+    }
+  }
+
+  function closeForm() {
+    document.getElementById('addForm').classList.remove('open');
+    document.getElementById('addToggle').style.display = '';
+    document.getElementById('blockName').value = '';
+  }
+
+  // Allow Enter key to submit
+  document.getElementById('blockName')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') addBlock();
+  });
+
+  // ── Utils ────────────────────────────────────────────────────
+  function escHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  render();
+</script>
+</body>
+</html>
